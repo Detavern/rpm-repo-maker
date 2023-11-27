@@ -1,0 +1,6 @@
+centos:
+  hosts:
+    "pg.deploy":
+      ansible_host: pg.deploy
+  vars:
+    ansible_user: root

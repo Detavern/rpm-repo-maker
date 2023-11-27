@@ -1,0 +1,33 @@
+{
+    "yum": [
+        "git",
+        "vim-enhanced",
+        "zsh",
+        "wget",
+        "curl",
+        "htop",
+        "iotop",
+        "zip",
+        "unzip",
+        "telnet",
+        "bind-utils",
+        "tmux",
+        "rsync",
+        "tcpdump",
+        "openssl",
+        "polkit",
+        "audit",
+        "libselinux",
+        "libselinux-utils",
+        "libselinux-python",
+        {
+            "name": "docker-ce",
+            "versions": [
+                "18.09.9",
+                "19.03.15",
+                "20.10.24",
+                "@latest"
+            ]
+        }
+    ]
+}
