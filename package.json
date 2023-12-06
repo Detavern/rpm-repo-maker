@@ -45,6 +45,7 @@
         "tmux",
         "rsync",
         "tcpdump",
+        "docker-compose",
         "openssl",
         "polkit",
         "audit",
