@@ -1,11 +1,11 @@
-# Yum Repository Maker
+# RPM Repository Maker
 
-Make offline yum repository for CentOS 6/7
+Make offline rpm repository
 
 ## Usage
 
-### Make offline repository
+### For yum
 
 ```bash
-ansible-playbook -i inventory.yml make-offline-repo.yml
+ansible-playbook -i inventory.yml make-repo-yum.yml
 ```
