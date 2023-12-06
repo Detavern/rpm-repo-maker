@@ -1,6 +1,12 @@
-centos:
+yum:
   hosts:
-    "pg.deploy":
-      ansible_host: pg.deploy
+    "env.centos-7.9":
+      ansible_host: env.centos-7.9
+  vars:
+    ansible_user: root
+dnf:
+  hosts:
+    "env.kylin-v10":
+      ansible_host: env.kylin-v10
   vars:
     ansible_user: root

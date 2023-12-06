@@ -27,17 +27,17 @@ def run(cmd, suppress=False):
         return out
 
 
-def move(local_path, remote_path, mode=None):
+def move(src, dst, mode=None):
     """copy move"""
-    suffix = local_path.split("/")[-1]
-    if os.path.isdir(local_path):
-        run("cp -rp {} {}".format(local_path, remote_path))
+    suffix = src.split("/")[-1]
+    if os.path.isdir(src):
+        run("cp -rp {} {}".format(src, dst))
         if mode:
-            run("chmod -R {} {}".format(mode, remote_path + "/" + suffix))
+            run("chmod -R {} {}".format(mode, dst + "/" + suffix))
     else:
-        run("cp {} {}".format(local_path, remote_path))
+        run("cp {} {}".format(src, dst))
         if mode:
-            run("chmod {} {}".format(mode, remote_path))
+            run("chmod {} {}".format(mode, dst))
 
 
 def cmd_exists(cmd, path=None):

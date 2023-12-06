@@ -29,5 +29,32 @@
                 "@latest"
             ]
         }
+    ],
+    "dnf-kylin": [
+        "git",
+        "vim-enhanced",
+        "zsh",
+        "wget",
+        "curl",
+        "htop",
+        "iotop",
+        "zip",
+        "unzip",
+        "telnet",
+        "bind-utils",
+        "tmux",
+        "rsync",
+        "tcpdump",
+        "openssl",
+        "polkit",
+        "audit",
+        "libselinux",
+        "python3-libselinux",
+        {
+            "name": "docker-ce",
+            "versions": [
+                "@latest"
+            ]
+        }
     ]
 }

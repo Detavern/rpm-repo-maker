@@ -1,13 +1,5 @@
-- name: Check if target OS is CentOS
-  hosts: centos
-  tasks:
-    - name: Ping hosts
-      ansible.builtin.ping:
-    - name: Create group of verified distribution
-      ansible.builtin.group_by:
-        key: verified_{{ ansible_distribution | lower }}
-- name: Make CentOS Yum offline repository
-  hosts: verified_centos
+- name: Make Yum offline repository
+  hosts: yum
   vars_prompt:
     - name: repository
       prompt: What is your offline repository name?
@@ -17,9 +9,9 @@
     repository_file: "{{ repository }}.{{ repository_suffix }}.tar.gz"
     repository_local: repository
   tasks:
-    - name: Put yum repository maker
+    - name: Put rpm repository maker
       ansible.builtin.copy:
-        src: yum_repo_maker
+        src: rpm_repo_maker
         dest: ~/
     - name: Put configuration file
       ansible.builtin.copy:
@@ -27,7 +19,7 @@
         dest: ~/
     - name: Execute maker
       ansible.builtin.shell:
-        cmd: python -m yum_repo_maker generate {{ repository }} -c package.json -u {{ repository_suffix }}
+        cmd: python -m rpm_repo_maker generate {{ repository }} -c package.json -u {{ repository_suffix }}
         chdir: ~/
       register: maker_sleeper
       async: 1800

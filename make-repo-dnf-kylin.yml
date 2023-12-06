@@ -1,0 +1,48 @@
+- name: Make Dnf offline repository
+  hosts: dnf
+  vars_prompt:
+    - name: repository
+      prompt: What is your offline repository name?
+      private: false
+  vars:
+    repository_suffix: "Kylin-{{ ansible_distribution_version }}-{{ ansible_machine }}"
+    repository_file: "{{ repository }}.{{ repository_suffix }}.tar.gz"
+    repository_local: repository
+  tasks:
+    - name: Put rpm repository maker
+      ansible.builtin.copy:
+        src: rpm_repo_maker
+        dest: ~/
+    - name: Put configuration file
+      ansible.builtin.copy:
+        src: package.json
+        dest: ~/
+    - name: Execute maker
+      ansible.builtin.shell:
+        cmd: python3 -m rpm_repo_maker generate {{ repository }} -c package.json -u {{ repository_suffix }} -m dnf-kylin
+        chdir: ~/
+      register: maker_sleeper
+      async: 1800
+      poll: 0
+    - name: Wait for maker job to end
+      ansible.builtin.async_status:
+        jid: "{{ maker_sleeper.ansible_job_id }}"
+      register: maker_result
+      until: maker_result.finished
+      retries: 360
+      delay: 10
+    - name: Clean up async file
+      ansible.builtin.async_status:
+        jid: "{{ maker_sleeper.ansible_job_id }}"
+        mode: cleanup
+    - name: Echo result
+      ansible.builtin.debug:
+        var: maker_result.stdout_lines
+    - name: Download archived repository file
+      ansible.builtin.fetch:
+        src: ~/{{ repository_file }}
+        dest: "{{ repository_local }}/"
+        flat: true
+    - name: Echo file
+      ansible.builtin.debug:
+        var: repository_file

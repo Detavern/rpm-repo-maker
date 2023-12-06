@@ -1,5 +1,3 @@
-# coding: utf-8
-
 import os
 import logging
 import logging.config
@@ -7,7 +5,7 @@ import logging.config
 
 # enums: prod, test, dev
 ENV = 'prod'
-NAME = 'deployer'
+NAME = 'maker'
 
 CONFIG_DIR = os.path.abspath(os.path.dirname(__file__))
 PROJ_DIR = os.path.abspath(os.path.dirname(CONFIG_DIR))
@@ -46,7 +44,7 @@ LOGGING_CONFIG = {
         },
     },
     'loggers': {
-        'deployer': {
+        NAME: {
             'handlers': ['console'],
             'level': 'DEBUG',
             'propagate': True,
