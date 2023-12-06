@@ -9,11 +9,19 @@ class DnfKylinPackageFinder(DnfPackageFinder):
 
     @classmethod
     def _ensure_repo_source(cls):
-        """Install repository related tools, add extra online yum repository."""
+        # ensure docker-runc is removed because of we want to install containerd.io instead
+        run("dnf remove -y docker-runc podman")
+
         cls.logger.info("Adding Kylin online repositories ...")
         repo_str = """[kcnos]
 name=Kylin-$releasever - kcnos - archive.kylinos.cn
 baseurl=https://archive.kylinos.cn/yum/v10/kcnos/stable/V10.20231030.3.0/$basearch/
+gpgcheck=0
+
+[docker-ce-stable]
+name=Docker CE Stable - $basearch
+baseurl=https://download.docker.com/linux/centos/8/$basearch/stable
+enabled=1
 gpgcheck=0
 """
         # ensure repo
