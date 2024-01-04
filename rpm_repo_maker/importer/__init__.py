@@ -9,5 +9,6 @@ IMPORTER = {
     'yum': YumRepoImporter,
     'dnf': DnfRepoImporter,
     'dnf-kylin': DnfKylinRepoImporter,
+    'zypper': ZypperSLESRepoImporter,
     'zypper-nir': ZypperSLESRepoImporter,
 }
