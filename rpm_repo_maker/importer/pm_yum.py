@@ -11,5 +11,7 @@ class YumRepoImporter(RPMRepoImporter):
     """
 
     DESC_DISTRO = 'CentOS'
+    SHELL_ALIAS = 'yum-off'
+    SHELL_ALIAS_CMD = 'yum --disablerepo=\\* --enablerepo={name}'
 
     logger = RPMRepoImporter.logger.getChild("yum")

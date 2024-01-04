@@ -9,5 +9,7 @@ class DnfRepoImporter(RPMRepoImporter):
     """
 
     DESC_DISTRO = 'CentOS'
+    SHELL_ALIAS = 'dnf-off'
+    SHELL_ALIAS_CMD = 'dnf --disablerepo=\\* --enablerepo={name}'
 
     logger = RPMRepoImporter.logger.getChild("dnf")
