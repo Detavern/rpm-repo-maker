@@ -3,13 +3,17 @@
 import os
 
 from ..config import ROOT_LOGGER
-from ..helper import run, cmd_exists
+from ..helper import run, cmd_exists, FileEditor
 
 
 class RPMRepoImporter(object):
     """RPMRepoImporter"""
 
     DESC_DISTRO = 'CentOS'
+    REPO_PATH = '/etc/yum.repos.d'
+    SHELL_CONFIG_PATH = '~/.bashrc'
+    SHELL_ALIAS = ''
+    SHELL_ALIAS_CMD = ''
 
     logger = ROOT_LOGGER.getChild("importer")
 
@@ -29,7 +33,7 @@ class RPMRepoImporter(object):
         if not self.path.endswith('.tar.gz'):
             raise ValueError("path is not a valid archive: {}".format(self.path))
 
-        cmds = ['dnf', 'tar']
+        cmds = ['rpm', 'tar']
         for cmd in cmds:
             if not cmd_exists(cmd):
                 raise ValueError("command not found: {}".format(cmd))
@@ -54,12 +58,22 @@ enabled=0
 gpgcheck=0
 """
 
-        with open("/etc/yum.repos.d/{}.repo".format(self.file_name), 'w') as f:
+        with open(os.path.join(self.REPO_PATH, "{}.repo".format(self.file_name)), 'w') as f:
             f.write(cmd.format(
                 name=self.name,
                 path=self.repo,
                 desc_name=self.desc_name,
             ))
+
+    def generate_alias(self):
+        if self.SHELL_ALIAS and self.SHELL_ALIAS_CMD:
+            editor = FileEditor(self.SHELL_CONFIG_PATH)
+            alias = u"alias {}='{}'".format(
+                self.SHELL_ALIAS,
+                self.SHELL_ALIAS_CMD.format(name=self.name),
+            )
+            editor.ensure_lines('# offline repository alias', alias)
+            editor.save()
 
     def cleanup(self):
         pass
@@ -73,5 +87,6 @@ gpgcheck=0
             self.cleanup()
             raise e
         else:
+            self.generate_alias()
             self.cleanup()
 

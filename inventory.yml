@@ -10,3 +10,10 @@ dnf:
       ansible_host: env.kylin-v10
   vars:
     ansible_user: root
+zypper:
+  hosts:
+    "env.suse-12-sp5":
+      ansible_host: env.suse-12-sp5
+  vars:
+    ansible_user: root
+    ansible_python_interpreter: /usr/bin/python

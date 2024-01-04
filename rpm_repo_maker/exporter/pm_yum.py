@@ -1,18 +1,20 @@
 # coding: utf-8
 
 import os
+import sys
 import shutil
 import platform
 import tempfile
+import traceback
 
-from .finder import PackageFinder
+from .finder import PackageFinderV2
 from ..config import ROOT_LOGGER
 from ..helper import run, lcd, cmd_exists
 
 
-class YumPackageFinder(PackageFinder):
+class YumPackageFinder(PackageFinderV2):
 
-    logger = PackageFinder.logger.getChild("yum")
+    logger = PackageFinderV2.logger.getChild("yum")
 
     @classmethod
     def _is_repo_enabled(cls, repo):
@@ -30,21 +32,6 @@ class YumPackageFinder(PackageFinder):
         # ensure repo
         if not cls._is_repo_enabled("docker-ce-stable"):
             run("yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo")
-
-    @classmethod
-    def _parse_pkg_list(cls, pkg_list):
-        pkg_item_list = []
-        for pkg in pkg_list:
-            if isinstance(pkg, (str, unicode)):
-                pkg_item_list.append({'name': pkg})
-            elif isinstance(pkg, dict):
-                pkg_item_list.append(pkg)
-            elif isinstance(pkg, (list, tuple)):
-                pkg_item_list.extend(cls._parse_pkg_list(pkg))
-            else:
-                raise ValueError("unknown type of value", pkg)
-        return pkg_item_list
-
 
     @classmethod
     def _get_pkg_deps(cls, pkg_obj):

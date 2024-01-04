@@ -57,5 +57,24 @@
                 "@latest"
             ]
         }
+    ],
+    "zypper-nir": [
+        "git",
+        "vim",
+        "zsh",
+        "wget",
+        "curl",
+        "iotop",
+        "zip",
+        "unzip",
+        "telnet",
+        "bind-utils",
+        "rsync",
+        "tcpdump",
+        "openssl",
+        "polkit",
+        "audit",
+        "docker",
+        "python-xml"
     ]
 }

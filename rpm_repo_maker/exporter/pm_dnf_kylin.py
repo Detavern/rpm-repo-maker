@@ -1,11 +1,11 @@
-from .finder import PackageFinder
+from .finder import PackageFinderV3
 from .pm_dnf import DnfPackageFinder
 
 from ..helper import run
 
 
 class DnfKylinPackageFinder(DnfPackageFinder):
-    logger = PackageFinder.logger.getChild("dnf-kylin")
+    logger = PackageFinderV3.logger.getChild("dnf-kylin")
 
     @classmethod
     def _ensure_repo_source(cls):

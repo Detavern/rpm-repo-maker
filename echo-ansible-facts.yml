@@ -1,5 +1,5 @@
 - name: Echo facts
-  hosts: dnf
+  hosts: zypper
   tasks:
     - name: Ping hosts
       ansible.builtin.ping:

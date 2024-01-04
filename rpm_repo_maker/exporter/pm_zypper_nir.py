@@ -1,80 +1,39 @@
 import os
 import shutil
-import platform
 import tempfile
 
-from .finder import PackageFinderV3
+from .finder import PackageFinderV2
 from ..config import ROOT_LOGGER
 from ..helper import run, lcd, cmd_exists
 
 
-class DnfPackageFinder(PackageFinderV3):
-    logger = PackageFinderV3.logger.getChild("dnf")
-
-    @classmethod
-    def _is_repo_enabled(cls, repo):
-        """Return true if repo exists and enabled, else return false."""
-        stdout = run("dnf repolist")
-        return repo in stdout.decode()
+class ZypperNIRPackageFinder(PackageFinderV2):
+    logger = PackageFinderV2.logger.getChild("zypper")
 
     @classmethod
     def _ensure_repo_source(cls):
         """Install repository related tools, add extra online yum repository."""
-        raise NotImplementedError
+        cls.logger.info("Extra zypper repository should be add manually ...")
 
-    @classmethod
-    def _get_pkg_deps(cls, pkg_obj):
-        import dnf
-
-        with dnf.Base() as db:
-            db.read_all_repos()
-            db.fill_sack()
-
-            db.package_install(pkg_obj)
-            db.resolve()
-            # import ipdb; ipdb.set_trace()
-            deps = {pkg.name for pkg in db.transaction.install_set}
-            if pkg_obj.name in deps:
-                deps.remove(pkg_obj.name)
-            deps.add("{}-{}".format(pkg_obj.name, pkg_obj.version))
-        return deps
+        run("zypper install -y createrepo")
 
     @classmethod
     def _get_rpm_dependency_version(cls, pkg_item_list):
         """Get latest full dependency package list from yum by a package item list.
         Support multiple versions of same package.
         """
-        import dnf
+        results = []
+        # package item
+        for pkg_item in pkg_item_list:
+            results.append(pkg_item['name'])
 
-        dep_pkgs = set()
-        with dnf.Base() as db:
-            db.read_all_repos()
-            db.fill_sack()
-            # import ipdb; ipdb.set_trace()
-
-            # package item
-            for pkg_item in pkg_item_list:
-                q = db.sack.query().filter(name=pkg_item['name'])
-                avai_pkg_list = list(q)
-                if len(avai_pkg_list) <= 0:
-                    raise ValueError("package not found", pkg_item)
-
-                # select packages
-                pkgs = cls._select_packages(pkg_item, avai_pkg_list)
-                for pkg in pkgs:
-                    deps = cls._get_pkg_deps(pkg)
-                    dep_pkgs.update(deps)
-
-        results = list(dep_pkgs)
         results.sort()
         return results
 
 
 
-class DnfRepoExporter:
-    """DnfRepoExporter
-    Tested on CentOS 8
-    Export yum repository into an archive from an online machine.
+class ZypperNIRRepoExporter:
+    """Zypper repo exporter when --installroot option is not available.
     """
 
     TEMP_DIR_PREFIX = 'repomaker'
@@ -95,26 +54,48 @@ class DnfRepoExporter:
             raise ValueError("path is not a valid directory: {}".format(self.path))
         if self.path is None:
             self.path = os.path.abspath(os.getcwd())
-        cmds = ['dnf', 'tar']
+        cmds = ['tar']
         for cmd in cmds:
             if not cmd_exists(cmd):
                 raise ValueError("command not found: {}".format(cmd))
 
     def make(self, pkg_list):
         """
-        PKG="offline"
-        dnf install -y --downloadonly --installroot=/tmp/$PKG-installroot --releasever=8 --downloaddir=/tmp/$PKG
+        # fake a install root
+        mkdir -p /opt/rootfs/etc
+        mkdir -p /opt/rootfs/var/lib/rpm
+        cp -a /etc/zypp /opt/rootfs/etc/
+        cp -a /var/lib/rpm /opt/rootfs/var/lib/
+
+        # chroot
+        zypper -R /opt/rootfs --no-cd --gpg-auto-import-keys install --auto-agree-with-licenses -y -d docker
+
+        # create repo
+        zypper install createrepo
         createrepo --database /tmp/$PKG
         rm -rf /tmp/$PKG-installroot
         """
+        # fake a rootfs
+        self.logger.info("Faking root file system ...")
         installroot = os.path.join(self.tempdir, 'installroot')
-        downloaddir = os.path.join(self.tempdir, self.name)
-        distro = platform.linux_distribution()
-        releasever = distro[1].split('.')[0]
+        etc_path = os.path.join(installroot, 'etc')
+        rpm_lib_path = os.path.join(installroot, 'var', 'lib', 'rpm')
+        run("mkdir -p {}".format(etc_path))
+        run("mkdir -p {}".format(rpm_lib_path))
+        run("cp -a /etc/zypp {}".format(etc_path))
+        run("cp -a /var/lib/rpm {}".format(etc_path))
+
+        # download
         for pkg in pkg_list:
             self.logger.info("Downloading package {} ...".format(pkg))
-            run("dnf install -y --downloadonly --installroot={} --releasever={} --downloaddir={} {}".format(
-                installroot, releasever, downloaddir, pkg))
+            run("zypper -R {} --no-cd --gpg-auto-import-keys install --auto-agree-with-licenses -y -d {}".format(
+                installroot, pkg))
+
+        # collect downloaded
+        cachedir = os.path.join(installroot, 'var', 'cache', 'zypp', 'packages')
+        downloaddir = os.path.join(self.tempdir, self.name)
+        run("mkdir -p {}".format(downloaddir))
+        run("cp -a {}/*/* {}".format(cachedir, downloaddir))
 
         # createrepo
         self.logger.info("Creating repository ...")

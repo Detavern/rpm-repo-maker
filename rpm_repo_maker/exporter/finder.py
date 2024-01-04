@@ -6,7 +6,7 @@ def rpm_packages_handler_latest(rpm_pkg_list):
     return rpm_pkg_list[-1]
 
 
-class PackageFinder(object):
+class PackageFinderV2(object):
     SPECIAL_VERSION_META = "@"
     SPECIAL_VERSION_TAG_LATEST = "{}latest".format(SPECIAL_VERSION_META)
     SPECIAL_VERSION_HANDLERS = {
@@ -57,7 +57,7 @@ class PackageFinder(object):
     def _parse_pkg_list(cls, pkg_list):
         pkg_item_list = []
         for pkg in pkg_list:
-            if isinstance(pkg, str):
+            if isinstance(pkg, (str, unicode)):
                 pkg_item_list.append({'name': pkg})
             elif isinstance(pkg, dict):
                 pkg_item_list.append(pkg)
@@ -78,3 +78,20 @@ class PackageFinder(object):
         pkg_item_list = cls._parse_pkg_list(pkg_list)
         cls._ensure_repo_source()
         return cls._get_rpm_dependency_version(pkg_item_list)
+
+
+class PackageFinderV3(PackageFinderV2):
+
+    @classmethod
+    def _parse_pkg_list(cls, pkg_list):
+        pkg_item_list = []
+        for pkg in pkg_list:
+            if isinstance(pkg, str):
+                pkg_item_list.append({'name': pkg})
+            elif isinstance(pkg, dict):
+                pkg_item_list.append(pkg)
+            elif isinstance(pkg, (list, tuple)):
+                pkg_item_list.extend(cls._parse_pkg_list(pkg))
+            else:
+                raise ValueError("unknown type of value", pkg)
+        return pkg_item_list
